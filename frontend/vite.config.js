@@ -6,8 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     watch: {
-      // Utilise le polling pour la détection des changements de fichiers
       usePolling: true,
     },
+    // On s'assure que le serveur est bien exposé sur le bon port
+    host: true, // Équivalent de --host
+    strictPort: true,
+    port: 5173, 
   },
 })
