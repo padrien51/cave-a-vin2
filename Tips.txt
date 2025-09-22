@@ -1,0 +1,2 @@
+Remise de la base de données en ordre après avoir fait un docker compose down -v:
+ docker-compose exec backend npx prisma migrate dev --name init

@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Service de la base de données PostgreSQL
+  db:
+    image: postgres:14-alpine
+    container_name: cave-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cave_a_vin_db
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - cave-net
+
+  # Service Backend (Node.js API)
+  backend:
+    container_name: cave-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "4001:4000"
+    environment:
+      DATABASE_URL: "postgresql://user:password@db:5432/cave_a_vin_db?schema=public"
+      PORT: 4000
+    volumes:
+      - ./backend/src:/app/src  # Permet le rechargement à chaud du code
+      - uploads:/app/uploads   # Volume pour stocker les étiquettes
+    networks:
+      - cave-net
+
+# Service Frontend (React App)
+  frontend:
+    container_name: cave-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:5173"
+    volumes:
+      # ANCIENNE LIGNE : - ./frontend/src:/app/src
+      # NOUVELLE CONFIGURATION CI-DESSOUS
+      - ./frontend:/app
+      - /app/node_modules
+    stdin_open: true 
+    tty: true
+    networks:
+      - cave-net
+
+# Définition des réseaux et volumes
+networks:
+  cave-net:
+    driver: bridge
+
+volumes:
+  uploads:
+    driver: local
